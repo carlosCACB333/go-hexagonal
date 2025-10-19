@@ -1,7 +1,6 @@
 package value_objects
 
 import (
-	"encoding/json"
 	"regexp"
 	"strings"
 
@@ -29,19 +28,4 @@ func NewEmail(email string) (Email, error) {
 
 func (e Email) Value() string {
 	return e.value
-}
-
-func (e *Email) UnmarshalJSON(b []byte) error {
-
-	var s string
-	if err := json.Unmarshal(b, &s); err != nil {
-		return err
-	}
-	email, err := NewEmail(s)
-	if err != nil {
-		return err
-	}
-	*e = email
-	return nil
-
 }
