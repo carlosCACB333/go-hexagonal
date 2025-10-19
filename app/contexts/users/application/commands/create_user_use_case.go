@@ -31,17 +31,20 @@ type CreateUserUseCase struct {
 	userRepo        ports.UserRepository
 	idempotencyRepo shared_ports.IdempotencyRepository
 	eventBus        shared_ports.EventBus
+	hasher          shared_ports.Hasher
 }
 
 func NewCreateUserUseCase(
 	userRepo ports.UserRepository,
 	idempotencyRepo shared_ports.IdempotencyRepository,
 	eventBus shared_ports.EventBus,
+	hasher shared_ports.Hasher,
 ) *CreateUserUseCase {
 	return &CreateUserUseCase{
 		userRepo:        userRepo,
 		idempotencyRepo: idempotencyRepo,
 		eventBus:        eventBus,
+		hasher:          hasher,
 	}
 }
 
@@ -72,7 +75,7 @@ func (h *CreateUserUseCase) Execute(ctx context.Context, cmd CreateUserCommand) 
 		return nil, exceptions.ErrDuplicateEmail
 	}
 
-	password, err := value_objects.NewPassword(cmd.Password)
+	password, err := value_objects.NewPassword(h.hasher, cmd.Password)
 
 	if err != nil {
 		return nil, err

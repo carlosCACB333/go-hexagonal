@@ -12,6 +12,7 @@ import (
 	"github.com/carloscacb333/go-hexagonal/app/shared/infrastructure/config"
 	shared_persistence "github.com/carloscacb333/go-hexagonal/app/shared/infrastructure/persistence"
 	"github.com/carloscacb333/go-hexagonal/app/shared/infrastructure/rabbitmq"
+	"github.com/carloscacb333/go-hexagonal/app/shared/infrastructure/security"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -20,6 +21,7 @@ type Container struct {
 	config *config.Config
 	logger *zap.Logger
 	db     *gorm.DB
+	hasher shared_ports.Hasher
 
 	// Event bus
 	eventBus shared_ports.EventBus
@@ -44,6 +46,7 @@ func NewContainer(cfg *config.Config, logger *zap.Logger, db *gorm.DB) (*Contain
 		config: cfg,
 		logger: logger,
 		db:     db,
+		hasher: security.NewBcryptHasher(),
 	}
 
 	if err := container.initEventBus(); err != nil {
@@ -83,6 +86,7 @@ func (c *Container) initUseCases() {
 		c.userRepository,
 		c.idempotencyRepository,
 		c.eventBus,
+		c.hasher,
 	)
 	c.getUserUseCase = queries.NewGetUserUseCase(c.userReadRepository)
 	c.createUserReadUseCase = commands.NewCreateUserReadUseCase(c.userReadRepository)

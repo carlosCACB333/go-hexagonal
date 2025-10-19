@@ -1,6 +1,8 @@
 package events
 
 import (
+	"time"
+
 	"github.com/carloscacb333/go-hexagonal/app/contexts/users/domain/entities"
 	shared_events "github.com/carloscacb333/go-hexagonal/app/shared/domain/events"
 )
@@ -19,6 +21,7 @@ func NewUserCreatedEvent(user *entities.User) UserCreatedEvent {
 			Name:        user.Name,
 			Email:       user.Email.Value(),
 			DisplayName: user.DisplayName,
+			CreatedAt:   user.CreatedAt.Format(time.RFC3339),
 		},
 	}
 }
