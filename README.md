@@ -209,7 +209,7 @@ sequenceDiagram
 
 - Separación estricta entre comandos y consultas
 - Write model: tabla `users`
-- Read model: tabla `users_read_model`
+- Read model: tabla `users_read`
 - Proyecciones actualizadas por eventos
 
 ### ✅ Event-Driven
@@ -296,7 +296,7 @@ Acceder a: <http://localhost:15672>
 
 Tabla optimizada para escritura con todas las columnas necesarias.
 
-### Read Model (users_read_model)
+### Read Model (users_read)
 
 Tabla denormalizada optimizada para queries rápidas.
 
@@ -313,7 +313,7 @@ Este proyecto usa **GORM** como ORM, ofreciendo:
 - **Hooks**: BeforeCreate, AfterCreate, etc.
 - **Associations**: Manejo de relaciones
 - **Transaction support**: Transacciones ACID
-- **Connection pooling**: Gestión automática de conexiones
+- **Connection pooling**: Gestión de pool de conexiones
 
 #### Modelos GORM
 
