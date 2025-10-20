@@ -12,14 +12,15 @@ go-hexagonal/
 ├── internal/
 │   ├── bootstrap/               # Inicialización de la app
 │   │   └── app.go
+│   │   └── dependencies.go
 │   ├── contexts/                # Bounded contexts
 │   │   ├── users/
 │   │   │   ├── domain/         # Lógica de negocio
-│   │   │   │   ├── user.go
-│   │   │   │   ├── value_objects.go
-│   │   │   │   ├── events.go
-│   │   │   │   ├── errors.go
-│   │   │   │   └── user_repository.go (puerto)
+│   │   │   │   ├── entities/
+│   │   │   │   ├── value_objects/
+│   │   │   │   ├── events/
+│   │   │   │   ├── exceptions/
+│   │   │   │   └── ports/
 │   │   │   ├── application/    # Casos de uso
 │   │   │   │   ├── commands/
 │   │   │   │   ├── queries/
@@ -33,8 +34,10 @@ go-hexagonal/
 │       ├── domain/
 │       ├── application/
 │       └── infrastructure/
-│           ├── bus/
+│           ├── rabbitmq/
 │           ├── config/
+│           ├── security/
+│           ├── persistence/
 │           └── middleware/
 ├── docs/                       # ADRs y documentación
 ├── docker-compose.yml
@@ -146,33 +149,51 @@ Response: 200 OK
 ```mermaid
 sequenceDiagram
     participant Client
-    participant API
-    participant CommandHandler
-    participant Domain
-    participant WriteDB
-    participant EventBus
+    box Input Adapter
+        participant API
+    end
+    box Application Layer
+        participant CommandHandler
+        participant QueryHandler
+    end
+    box Domain Layer
+        participant Domain
+    end
+    box Output Adapters
+        participant WriteDB
+        participant EventBus
+        participant ReadDB
+    end
     participant RabbitMQ
     participant Consumer
-    participant ReadDB
-    
+
     Client->>API: POST /users (X-Tenant-Id)
     API->>CommandHandler: CreateUserCommand
-    CommandHandler->>Domain: Validate & Create User
-    Domain->>WriteDB: Save to users table
-    WriteDB-->>Domain: Saved
-    Domain->>EventBus: UserCreatedEvent
-    EventBus->>RabbitMQ: Publish Event
-    CommandHandler-->>API: 201 Created
-    API-->>Client: user_id
-    
-    RabbitMQ->>Consumer: UserCreatedEvent
-    Consumer->>ReadDB: Update users_read_model
+    CommandHandler->>Domain: Create User (validate, aggregate)
+    Domain-->>CommandHandler: User entity
+    CommandHandler->>WriteDB: Save(User)
+    WriteDB-->>CommandHandler: OK
+    CommandHandler->>Domain: Create UserCreatedEvent
+    CommandHandler->>EventBus: Publish(UserCreatedEvent)
+    EventBus->>RabbitMQ: Send Event
+
+   
+    RabbitMQ-->>CommandHandler: Event published
+    CommandHandler-->>API: 201 Created (user_id)
+    API-->>Client: 201 Created
+
+    Note over RabbitMQ,Consumer: Asynchronous processing (background)
+    RabbitMQ-->>Consumer: UserCreatedEvent
+    Consumer->>ReadDB: Update UserProjection
     ReadDB-->>Consumer: Updated
-    
+
     Client->>API: GET /users/:id
-    API->>ReadDB: Query from read model
-    ReadDB-->>API: User data
+    API->>QueryHandler: GetUserQuery
+    QueryHandler->>ReadDB: Fetch UserProjection
+    ReadDB-->>QueryHandler: User data
+    QueryHandler-->>API: User DTO
     API-->>Client: 200 OK
+
 ```
 
 ## 🎯 Características Implementadas
