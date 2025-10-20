@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"github.com/carloscacb333/go-hexagonal/app/contexts/users/application/commands"
+	shared_exceptions "github.com/carloscacb333/go-hexagonal/app/shared/domain/exceptions"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -12,12 +13,12 @@ type CreateUserRequest struct {
 	DisplayName *string `json:"display_name,omitempty"`
 }
 
-func CreateUserController(handler *commands.CreateUserUseCase) fiber.Handler {
+func CreateUserController(useCase *commands.CreateUserUseCase) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var req CreateUserRequest
 
 		if err := c.BodyParser(&req); err != nil {
-			return c.Status(400).JSON(fiber.Map{"error": "invalid request"})
+			return shared_exceptions.NewBadRequestError("invalid request body", err.Error())
 		}
 
 		tenantID := c.Locals("tenant_id").(string)
@@ -39,7 +40,7 @@ func CreateUserController(handler *commands.CreateUserUseCase) fiber.Handler {
 			DisplayName:    req.DisplayName,
 		}
 
-		resp, err := handler.Execute(c.Context(), cmd)
+		resp, err := useCase.Execute(c.Context(), cmd)
 		if err != nil {
 			return err
 		}

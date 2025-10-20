@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func GetUserController(handler *queries.GetUserUseCase) fiber.Handler {
+func GetUserController(useCase *queries.GetUserUseCase) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		userID, err := uuid.Parse(c.Params("id"))
 		if err != nil {
@@ -21,7 +21,7 @@ func GetUserController(handler *queries.GetUserUseCase) fiber.Handler {
 			UserID:   userID,
 		}
 
-		user, err := handler.Execute(c.Context(), query)
+		user, err := useCase.Execute(c.Context(), query)
 		if err != nil {
 			return err
 		}
