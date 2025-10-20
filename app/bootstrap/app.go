@@ -80,7 +80,7 @@ func initDatabase(cfg *config.Config, logger *zap.Logger) (*gorm.DB, error) {
 	// Ejecutar migraciones en desarrollo
 	if cfg.App.Environment == "development" {
 		logger.Info("running database migrations")
-		if err := shared_persistence.AutoMigrate(db); err != nil {
+		if err := shared_persistence.AutoMigrate(db, logger); err != nil {
 			return nil, fmt.Errorf("failed to run migrations: %w", err)
 		}
 	}

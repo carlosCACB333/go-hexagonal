@@ -53,7 +53,11 @@ func CreateUserController(useCase *commands.CreateUserUseCase) fiber.Handler {
 }
 
 func isFeatureEnabled(c *fiber.Ctx, feature string) bool {
-	// Implementar lógica de feature flags por tenant
-	// Por ahora retorna true
+
+	if feature == "display_name" {
+		tenantID := c.Locals("tenant_id").(string)
+		return tenantID != "tenant-50"
+	}
+
 	return true
 }

@@ -4,11 +4,11 @@ import (
 	"fmt"
 
 	user_persistence "github.com/carloscacb333/go-hexagonal/app/contexts/users/infrastructure/persistence"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
-func AutoMigrate(db *gorm.DB) error {
-	// Migrar todos los modelos
+func AutoMigrate(db *gorm.DB, logger *zap.Logger) error {
 	err := db.AutoMigrate(
 		&user_persistence.UserModel{},
 		&IdempotencyKeyModel{},
@@ -19,11 +19,10 @@ func AutoMigrate(db *gorm.DB) error {
 		return fmt.Errorf("failed to auto migrate: %w", err)
 	}
 
-	fmt.Println("✓ Auto-migration completed successfully")
+	logger.Info("Auto-migration completed successfully")
 	return nil
 }
 
-// DropAllTables elimina todas las tablas (útil para testing)
 func DropAllTables(db *gorm.DB) error {
 	return db.Migrator().DropTable(
 		&user_persistence.UserModel{},
