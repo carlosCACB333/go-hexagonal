@@ -15,6 +15,9 @@ coverage:
 	go test ./... -coverprofile=coverage/coverage.out
 	go tool cover -html=coverage/coverage.out -o coverage/coverage.html
 
+clean:
+	docker-compose down --volumes --rmi all
+
 GO_IMAGE ?= golang:1.25-alpine
 
 .PHONY: test-docker coverage-docker
