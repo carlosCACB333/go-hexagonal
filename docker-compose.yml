@@ -1,7 +1,6 @@
 services:
   db-service:
     image: postgres:16-alpine
-    
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -15,8 +14,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
-
 
   rabbitmq-service:
     image: rabbitmq:4-management-alpine
@@ -59,15 +56,13 @@ services:
         condition: service_healthy
 
   gateway-service:
-    image: nginx:latest
+    image: nginx:1.29
     ports:
       - "8080:80"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - api-service
-
-
 
 volumes:
   db_data:
