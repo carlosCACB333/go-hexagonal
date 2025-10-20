@@ -1,6 +1,10 @@
 package config
 
-import "github.com/spf13/viper"
+import (
+	"time"
+
+	"github.com/spf13/viper"
+)
 
 type Config struct {
 	API      APIConfig
@@ -21,6 +25,11 @@ type DBConfig struct {
 	Password string
 	Name     string
 	SSLMode  string
+
+	MaxIdleConns    int
+	MaxOpenConns    int
+	ConnMaxLifetime time.Duration
+	ConnMaxIdleTime time.Duration
 }
 
 type RabbitMQConfig struct {
@@ -48,12 +57,16 @@ func LoadConfig() (*Config, error) {
 			Host: getEnvOrDefault("API_HOST", "0.0.0.0"),
 		},
 		DB: DBConfig{
-			Host:     getEnvOrDefault("DB_HOST", "localhost"),
-			Port:     getEnvOrDefault("DB_PORT", "5432"),
-			User:     getEnvOrDefault("DB_USER", "postgres"),
-			Password: getEnvOrDefault("DB_PASSWORD", "postgres"),
-			Name:     getEnvOrDefault("DB_NAME", "backend_hex_cqrs"),
-			SSLMode:  getEnvOrDefault("DB_SSL_MODE", "disable"),
+			Host:            getEnvOrDefault("DB_HOST", "localhost"),
+			Port:            getEnvOrDefault("DB_PORT", "5432"),
+			User:            getEnvOrDefault("DB_USER", "postgres"),
+			Password:        getEnvOrDefault("DB_PASSWORD", "postgres"),
+			Name:            getEnvOrDefault("DB_NAME", "backend_hex_cqrs"),
+			SSLMode:         getEnvOrDefault("DB_SSL_MODE", "disable"),
+			MaxIdleConns:    10,
+			MaxOpenConns:    100,
+			ConnMaxLifetime: time.Hour,
+			ConnMaxIdleTime: 10 * time.Minute,
 		},
 		RabbitMQ: RabbitMQConfig{
 			Host:     getEnvOrDefault("RABBITMQ_HOST", "localhost"),
