@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-// MockHasher is a mock implementation of the Hasher interface
 type MockHasher struct {
 	mock.Mock
 }

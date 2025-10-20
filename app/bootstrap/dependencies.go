@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/carloscacb333/go-hexagonal/app/contexts/users/application/commands"
+	"github.com/carloscacb333/go-hexagonal/app/contexts/users/application/notifications"
+	"github.com/carloscacb333/go-hexagonal/app/contexts/users/application/projections"
 	"github.com/carloscacb333/go-hexagonal/app/contexts/users/application/queries"
 	"github.com/carloscacb333/go-hexagonal/app/contexts/users/domain/ports"
 	"github.com/carloscacb333/go-hexagonal/app/contexts/users/infrastructure/messaging/consumers"
@@ -32,10 +34,12 @@ type Container struct {
 	userReadRepository    ports.UserReadRepository
 
 	// Casos de uso
-	createUserUseCase     *commands.CreateUserUseCase
-	getUserUseCase        *queries.GetUserUseCase
-	createUserReadUseCase *commands.CreateUserReadUseCase
-	sendEmailUseCase      *commands.SendEmailUseCase
+	createUserUseCase *commands.CreateUserUseCase
+	getUserUseCase    *queries.GetUserUseCase
+
+	// Projections
+	userCreatedHandler      *projections.UserCreatedHandler
+	userNotificationHandler *notifications.UserNotificationHandler
 
 	// Consumidores de eventos
 	eventConsumers []shared_ports.EventConsumer
@@ -55,6 +59,7 @@ func NewContainer(cfg *config.Config, logger *zap.Logger, db *gorm.DB) (*Contain
 
 	container.initRepositories()
 	container.initUseCases()
+	container.initHandlers()
 
 	if err := container.initConsumers(); err != nil {
 		return nil, fmt.Errorf("failed to initialize consumers: %w", err)
@@ -89,21 +94,25 @@ func (c *Container) initUseCases() {
 		c.hasher,
 	)
 	c.getUserUseCase = queries.NewGetUserUseCase(c.userReadRepository)
-	c.createUserReadUseCase = commands.NewCreateUserReadUseCase(c.userReadRepository)
-	c.sendEmailUseCase = commands.NewSendEmailUseCase()
+
+}
+
+func (c *Container) initHandlers() {
+	c.userCreatedHandler = projections.NewUserCreatedHandler(c.userReadRepository)
+	c.userNotificationHandler = notifications.NewUserNotificationHandler(c.userReadRepository)
 }
 
 func (c *Container) initConsumers() error {
 	userProjectionsConsumer := consumers.NewRabbitMQUserProjectionsConsumer(
 		&c.config.RabbitMQ,
 		c.logger,
-		c.createUserReadUseCase,
+		c.userCreatedHandler,
 	)
 
 	userNotificationConsumer := consumers.NewRabbitMQUserNotificationConsumer(
 		&c.config.RabbitMQ,
 		c.logger,
-		c.sendEmailUseCase,
+		c.userNotificationHandler,
 	)
 
 	c.eventConsumers = []shared_ports.EventConsumer{
@@ -118,12 +127,12 @@ func (c *Container) GetCreateUserUseCase() *commands.CreateUserUseCase {
 	return c.createUserUseCase
 }
 
-func (c *Container) GetGetUserUseCase() *queries.GetUserUseCase {
-	return c.getUserUseCase
+func (c *Container) GetUserCreatedHandler() *projections.UserCreatedHandler {
+	return c.userCreatedHandler
 }
 
-func (c *Container) GetSendEmailUseCase() *commands.SendEmailUseCase {
-	return c.sendEmailUseCase
+func (c *Container) GetGetUserUseCase() *queries.GetUserUseCase {
+	return c.getUserUseCase
 }
 
 func (c *Container) GetEventConsumers() []shared_ports.EventConsumer {

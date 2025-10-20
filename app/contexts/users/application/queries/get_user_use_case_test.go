@@ -15,7 +15,6 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-// MockUserReadRepository is a mock implementation of UserReadRepository
 type MockUserReadRepository struct {
 	mock.Mock
 }

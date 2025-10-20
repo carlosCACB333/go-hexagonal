@@ -16,8 +16,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// Mocks for dependencies of CreateUserUseCase
-
 type MockUserRepository struct{ mock.Mock }
 
 func (m *MockUserRepository) Save(ctx context.Context, user *entities.User) error {

@@ -3,7 +3,7 @@ package consumers
 import (
 	"context"
 
-	"github.com/carloscacb333/go-hexagonal/app/contexts/users/application/commands"
+	"github.com/carloscacb333/go-hexagonal/app/contexts/users/application/projections"
 	"github.com/carloscacb333/go-hexagonal/app/contexts/users/infrastructure/messaging/handlers"
 	"github.com/carloscacb333/go-hexagonal/app/shared/domain/ports"
 	"github.com/carloscacb333/go-hexagonal/app/shared/infrastructure/config"
@@ -18,10 +18,10 @@ type RabbitMQUserProjectionsConsumer struct {
 func NewRabbitMQUserProjectionsConsumer(
 	cfg *config.RabbitMQConfig,
 	logger *zap.Logger,
-	createUseCase *commands.CreateUserReadUseCase,
+	userCreatedHandler *projections.UserCreatedHandler,
 ) *RabbitMQUserProjectionsConsumer {
 
-	eventHandler := handlers.NewUserProjectionsEventHandler(createUseCase)
+	eventHandler := handlers.NewUserProjectionsEventHandler(userCreatedHandler)
 
 	consumer := rabbitmq.NewRabbitMQConsumer(
 		cfg,

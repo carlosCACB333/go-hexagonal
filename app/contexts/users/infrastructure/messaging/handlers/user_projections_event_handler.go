@@ -5,18 +5,18 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/carloscacb333/go-hexagonal/app/contexts/users/application/commands"
+	"github.com/carloscacb333/go-hexagonal/app/contexts/users/application/projections"
 	"github.com/carloscacb333/go-hexagonal/app/contexts/users/domain/events"
 	shared_exceptions "github.com/carloscacb333/go-hexagonal/app/shared/domain/exceptions"
 )
 
 type UserProjectionsEventHandler struct {
-	createUserUseCase *commands.CreateUserReadUseCase
+	userCreatedHandler *projections.UserCreatedHandler
 }
 
-func NewUserProjectionsEventHandler(createUserUseCase *commands.CreateUserReadUseCase) *UserProjectionsEventHandler {
+func NewUserProjectionsEventHandler(userCreatedHandler *projections.UserCreatedHandler) *UserProjectionsEventHandler {
 	return &UserProjectionsEventHandler{
-		createUserUseCase: createUserUseCase,
+		userCreatedHandler: userCreatedHandler,
 	}
 }
 
@@ -24,13 +24,13 @@ func (h *UserProjectionsEventHandler) HandleEvent(ctx context.Context, eventType
 	switch eventType {
 	case "user.created":
 
-		event := events.UserCreatedEvent{}
+		event := &events.UserCreatedEvent{}
 
-		if err := json.Unmarshal(data, &event); err != nil {
+		if err := json.Unmarshal(data, event); err != nil {
 			return shared_exceptions.NewInternalServerError("failed to unmarshal user.created event", err.Error())
 		}
 
-		_, err := h.createUserUseCase.Execute(ctx, &event.Data)
+		err := h.userCreatedHandler.Handle(ctx, event)
 		return err
 
 	default:

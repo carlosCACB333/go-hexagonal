@@ -5,18 +5,18 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/carloscacb333/go-hexagonal/app/contexts/users/application/commands"
+	"github.com/carloscacb333/go-hexagonal/app/contexts/users/application/notifications"
 	"github.com/carloscacb333/go-hexagonal/app/contexts/users/domain/events"
 	shared_exceptions "github.com/carloscacb333/go-hexagonal/app/shared/domain/exceptions"
 )
 
 type UserNotificationEventHandler struct {
-	sendEmailUseCase *commands.SendEmailUseCase
+	notificationHandler *notifications.UserNotificationHandler
 }
 
-func NewUserNotificationEventHandler(sendEmail *commands.SendEmailUseCase) *UserNotificationEventHandler {
+func NewUserNotificationEventHandler(notificationHandler *notifications.UserNotificationHandler) *UserNotificationEventHandler {
 	return &UserNotificationEventHandler{
-		sendEmailUseCase: sendEmail,
+		notificationHandler: notificationHandler,
 	}
 }
 
@@ -30,7 +30,7 @@ func (h *UserNotificationEventHandler) HandleEvent(ctx context.Context, eventTyp
 			return shared_exceptions.NewInternalServerError("failed to unmarshal user.created event", err.Error())
 		}
 
-		err := h.sendEmailUseCase.Execute(ctx, &event.Data)
+		err := h.notificationHandler.Handle(ctx, &event)
 		return err
 
 	default:

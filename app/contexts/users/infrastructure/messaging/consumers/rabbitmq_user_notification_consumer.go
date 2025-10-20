@@ -3,7 +3,7 @@ package consumers
 import (
 	"context"
 
-	"github.com/carloscacb333/go-hexagonal/app/contexts/users/application/commands"
+	"github.com/carloscacb333/go-hexagonal/app/contexts/users/application/notifications"
 	"github.com/carloscacb333/go-hexagonal/app/contexts/users/infrastructure/messaging/handlers"
 	"github.com/carloscacb333/go-hexagonal/app/shared/domain/ports"
 	"github.com/carloscacb333/go-hexagonal/app/shared/infrastructure/config"
@@ -18,10 +18,10 @@ type RabbitMQUserNotificationConsumer struct {
 func NewRabbitMQUserNotificationConsumer(
 	cfg *config.RabbitMQConfig,
 	logger *zap.Logger,
-	sendEmailUseCase *commands.SendEmailUseCase,
+	notificationHandler *notifications.UserNotificationHandler,
 ) *RabbitMQUserNotificationConsumer {
 
-	eventHandler := handlers.NewUserNotificationEventHandler(sendEmailUseCase)
+	eventHandler := handlers.NewUserNotificationEventHandler(notificationHandler)
 
 	consumer := rabbitmq.NewRabbitMQConsumer(
 		cfg,
