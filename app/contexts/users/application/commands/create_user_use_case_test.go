@@ -164,7 +164,7 @@ func (s *CreateUserUseCaseSuite) TestExecute_IdempotencyCheckError() {
 	resp, err := s.uc.Execute(s.ctx, cmd)
 	assert.Nil(s.T(), resp)
 	assert.Error(s.T(), err)
-	assert.Contains(s.T(), err.Error(), "failed to check idempotency")
+	assert.Contains(s.T(), err.Error(), "db down")
 
 	s.repo.AssertNotCalled(s.T(), "Save", mock.Anything, mock.Anything)
 	s.event.AssertNotCalled(s.T(), "Publish", mock.Anything, mock.Anything, mock.Anything)

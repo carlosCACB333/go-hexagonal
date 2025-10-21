@@ -2,13 +2,13 @@ package commands
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/carloscacb333/go-hexagonal/app/contexts/users/domain/entities"
 	"github.com/carloscacb333/go-hexagonal/app/contexts/users/domain/events"
 	"github.com/carloscacb333/go-hexagonal/app/contexts/users/domain/exceptions"
 	"github.com/carloscacb333/go-hexagonal/app/contexts/users/domain/ports"
 	"github.com/carloscacb333/go-hexagonal/app/contexts/users/domain/value_objects"
+	shared_exceptions "github.com/carloscacb333/go-hexagonal/app/shared/domain/exceptions"
 	shared_ports "github.com/carloscacb333/go-hexagonal/app/shared/domain/ports"
 	"github.com/google/uuid"
 )
@@ -53,10 +53,10 @@ func (h *CreateUserUseCase) Execute(ctx context.Context, cmd CreateUserCommand) 
 	if cmd.IdempotencyKey != "" {
 		processed, err := h.idempotencyRepo.IsProcessed(ctx, cmd.TenantID, cmd.IdempotencyKey)
 		if err != nil {
-			return nil, fmt.Errorf("failed to check idempotency: %w", err)
+			return nil, err
 		}
 		if processed {
-			return nil, fmt.Errorf("command already processed")
+			return nil, shared_exceptions.NewConflictError("command already processed", "")
 		}
 	}
 
